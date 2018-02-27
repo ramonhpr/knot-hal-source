@@ -187,7 +187,7 @@ static int serial_start(const char *pathname)
 	GIOChannel *io;
 	int unixfd;
 
-	commfd = hal_comm_init(pathname, NULL);
+	commfd = hal_comm_init(NULL, pathname, NULL);
 	printf("commfd = (%d)\n\r", commfd);
 	if (commfd < 0)
 		return -errno;

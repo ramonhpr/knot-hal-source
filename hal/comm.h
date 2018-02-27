@@ -30,7 +30,7 @@ extern "C" {
  * common to any transport.
  */
 
-int hal_comm_init(const char *name, const void *params);
+int hal_comm_init(const char *name, const char *pathname, const void *params);
 int hal_comm_deinit(void);
 
 int hal_comm_socket(int domain, int protocol);

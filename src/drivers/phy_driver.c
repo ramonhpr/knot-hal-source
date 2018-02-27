@@ -30,7 +30,7 @@ struct phy_driver *driver_ops[] = {
 #define PHY_DRIVERS_COUNTER	((int) (sizeof(driver_ops) \
 				 / sizeof(driver_ops[0])))
 
-int phy_open(const char *name)
+int phy_open(const char *name, const char *pathname)
 {
 	uint8_t i;
 	int err, sockfd = -1;
@@ -48,7 +48,12 @@ int phy_open(const char *name)
 	/* If not open */
 	if (driver_ops[sockfd]->ref_open == 0) {
 		/* Open the driver - returns fd */
-		err = driver_ops[sockfd]->open(driver_ops[sockfd]->pathname);
+		#ifdef ARDUINO
+		err = driver_ops[sockfd]->open(NULL);
+		#else
+		err = driver_ops[sockfd]->open(pathname);
+		#endif
+
 		if (err < 0)
 			return err;
 
