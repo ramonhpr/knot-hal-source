@@ -913,7 +913,7 @@ static void running(void)
 }
 
 /* Global functions */
-int hal_comm_init(const char *pathname, const void *params)
+int hal_comm_init(const char *name, const void *params)
 {
 	uint16_t ch;
 
@@ -922,7 +922,7 @@ int hal_comm_init(const char *pathname, const void *params)
 		return -EPERM;
 
 	/* Open driver and returns the driver index */
-	driverIndex = phy_open(pathname);
+	driverIndex = phy_open(name);
 	if (driverIndex < 0)
 		return driverIndex;
 

@@ -30,14 +30,14 @@ struct phy_driver *driver_ops[] = {
 #define PHY_DRIVERS_COUNTER	((int) (sizeof(driver_ops) \
 				 / sizeof(driver_ops[0])))
 
-int phy_open(const char *pathname)
+int phy_open(const char *name)
 {
 	uint8_t i;
 	int err, sockfd = -1;
 
 	/* Find driver index */
 	for (i = 0; i < PHY_DRIVERS_COUNTER; ++i) {
-		if (strcmp(pathname, driver_ops[i]->name) == 0)
+		if (strcmp(name, driver_ops[i]->name) == 0)
 			sockfd = i;
 	}
 
