@@ -37,6 +37,7 @@ static struct addr_pipe raw_pipe = {
 				};
 
 static char *option_mac;
+static char *option_spi = "/dev/spi0.0";
 static int option_channel = 76;	/* Beacon/Broadcast channel */
 
 static void sig_term(int sig)
@@ -248,6 +249,8 @@ static GOptionEntry options[] = {
 				"Broadcasting channel (default 76)", NULL},
 	{ "mac", 'm', 0, G_OPTION_ARG_STRING, &option_mac,
 						"Specify MAC to filter", NULL},
+	{ "spi", 's', 0, G_OPTION_ARG_STRING, &option_spi,
+						"Specify SPI device path", NULL},
 	{ NULL },
 };
 
