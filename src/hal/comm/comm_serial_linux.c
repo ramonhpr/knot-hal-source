@@ -22,7 +22,7 @@
 
 #include "hal/comm.h"
 
-int hal_comm_init(const char *pathname, const void *params)
+int hal_comm_init(const char *name, const char *pathname, const void *params)
 {
 	struct termios toptions;
 	int fd;

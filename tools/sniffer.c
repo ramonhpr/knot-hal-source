@@ -185,7 +185,7 @@ static int sniffer_start(void)
 	ssize_t plen;
 	time_t last_sec = LONG_MAX;
 
-	cli_fd = phy_open("NRF0");
+	cli_fd = phy_open("NRF0", option_spi);
 	if (cli_fd < 0)
 		return -EIO;
 

@@ -1004,7 +1004,7 @@ static int radio_init(const char *spi, uint8_t channel, uint8_t rfpwr,
 			.name = "nrf0" };
 	int err;
 
-	err = hal_comm_init("NRF0", &config);
+	err = hal_comm_init("NRF0", spi, &config);
 	if (err < 0) {
 		hal_log_error("Cannot init NRF0 radio. (%d)", err);
 		return err;
