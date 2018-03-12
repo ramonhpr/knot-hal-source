@@ -31,6 +31,12 @@ libhal_include_HEADERS = $(libhal_la_SOURCES)
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = src/hal.pc
 
+if STATIC
+AM_LDFLAGS += -static
+else
+AM_LDFLAGS += -ldl
+endif
+
 bin_PROGRAMS = proxy/spiproxyd src/lorad/lorad tools/rpiecho
 
 if SERIAL

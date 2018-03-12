@@ -30,6 +30,10 @@ AC_ARG_ENABLE(serial-join, AC_HELP_STRING([--enable-serial-join],
 		["Enable serial to join in library hal"]), [enable_serial=${enableval}])
 AM_CONDITIONAL(SERIAL, test "${enable_serial}" = "yes")
 
+AC_ARG_ENABLE(enable-static, AC_HELP_STRING([--enable-static],
+                [enable compilation to static library]), [enable-static=${enable_val}])
+AM_CONDITIONAL(STATIC, test "${enable_static}" = "yes")
+
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.52, dummy=no,
 				AC_MSG_ERROR(required glib >= 2.52))
 AC_SUBST(GLIB_CFLAGS)
