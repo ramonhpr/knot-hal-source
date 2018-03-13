@@ -25,10 +25,24 @@ m4_define([_LT_AC_TAGCONFIG], [])
 m4_ifdef([AC_LIBTOOL_TAGS], [AC_LIBTOOL_TAGS([])])
 
 AC_PROG_LIBTOOL
-
-AC_ARG_ENABLE(serial-join, AC_HELP_STRING([--enable-serial-join],
-		["Enable serial to join in library hal"]), [enable_serial=${enableval}])
-AM_CONDITIONAL(SERIAL, test "${enable_serial}" = "yes")
+AC_ARG_WITH([network], AC_HELP_STRING([--with-network=ARG],
+				[Type of network yield to the library]),
+					[type_network=${withval}])
+if (test -z "${type_network}"); then
+	AC_MSG_CHECKING([for network type setting])
+	type_network="nrf24"
+	AC_MSG_RESULT([${type_network}])
+else
+	AC_MSG_CHECKING([for network type setting])
+	if (test "${type_network}" = "serial"); then
+		AC_MSG_RESULT([${type_network}])
+	else
+		if (test "${type_network}" != "nrf24"); then
+          	      AC_MSG_ERROR([No supported network])
+        	fi
+	fi
+fi
+AM_CONDITIONAL(SERIAL, test "${type_network}" = "serial")
 
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.52, dummy=no,
 				AC_MSG_ERROR(required glib >= 2.52))
