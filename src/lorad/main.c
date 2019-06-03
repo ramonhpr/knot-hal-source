@@ -8,26 +8,59 @@
  */
 
 #include <stdio.h>
-#include <glib.h>
+#include <ell/ell.h>
 
-static GMainLoop *main_loop;
-
-static void sig_term(int sig)
+static void main_loop_quit(struct l_timeout *timeout, void *user_data)
 {
-	g_main_loop_quit(main_loop);
+	l_main_quit();
+	l_timeout_remove(timeout);
+}
+
+static void l_terminate(void)
+{
+	static bool terminating = false;
+
+	if (terminating)
+		return;
+
+	terminating = true;
+
+	l_timeout_create(1, main_loop_quit, NULL, NULL);
+}
+
+static bool l_main_loop_init()
+{
+	return l_main_init();
+}
+
+static void signal_handler(uint32_t signo, void *user_data)
+{
+	switch (signo) {
+	case SIGINT:
+	case SIGTERM:
+		l_terminate();
+		break;
+	}
+}
+
+static void l_main_loop_run()
+{
+	l_main_run_with_signal(signal_handler, NULL);
+
+	l_main_exit();
 }
 
 int main(int argc, char *argv[])
 {
 	printf("LoRa daemon\n");
 
-	signal(SIGTERM, sig_term);
-	signal(SIGINT, sig_term);
-	signal(SIGPIPE, SIG_IGN);
 
-	main_loop = g_main_loop_new(NULL, FALSE);
-	g_main_loop_run(main_loop);
-	g_main_loop_unref(main_loop);
+	if (!l_main_loop_init())
+		goto fail_main_loop;
 
+	l_main_loop_run();
+
+fail_main_loop:
+	l_main_exit();
 	return 0;
 }

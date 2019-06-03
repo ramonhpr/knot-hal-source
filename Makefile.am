@@ -52,9 +52,9 @@ proxy_spiproxyd_LDFLAGS = $(AM_LDFLAGS)
 proxy_spiproxyd_CFLAGS = $(AM_CFLAGS) @GLIB_CFLAGS@
 
 src_lorad_lorad_SOURCES = src/lorad/main.c
-src_lorad_lorad_LDADD = @GLIB_LIBS@
+src_lorad_lorad_LDADD = @ELL_LIBS@
 src_lorad_lorad_LDFLAGS = $(AM_LDFLAGS)
-src_lorad_lorad_CFLAGS = $(AM_CFLAGS) @GLIB_CFLAGS@
+src_lorad_lorad_CFLAGS = $(AM_CFLAGS) @ELL_CFLAGS@
 
 if !SERIAL
 tools_sniffer_SOURCES = tools/sniffer.c
