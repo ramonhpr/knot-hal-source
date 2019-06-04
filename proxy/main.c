@@ -18,26 +18,60 @@
 #include <netinet/in.h>
 #include <glib.h>
 
-static GMainLoop *main_loop;
-
 static unsigned int opt_port = 9000;
 static const char *opt_spi = "/dev/spidev0.0";
 
-static void sig_term(int sig)
+
+static void main_loop_quit(struct l_timeout *timeout, void *user_data)
 {
-	g_main_loop_quit(main_loop);
+	l_main_quit();
+	l_timeout_remove(timeout);
 }
 
-static gboolean idle_watch(gpointer user_data)
+static void l_terminate(void)
+{
+	static bool terminating = false;
+
+	if (terminating)
+		return;
+
+	terminating = true;
+
+	l_timeout_create(1, main_loop_quit, NULL, NULL);
+}
+
+static bool l_main_loop_init()
+{
+	return l_main_init();
+}
+
+static void signal_handler(uint32_t signo, void *user_data)
+{
+	switch (signo) {
+	case SIGINT:
+	case SIGTERM:
+		l_terminate();
+		break;
+	}
+}
+
+static void l_main_loop_run()
+{
+	l_main_run_with_signal(signal_handler, NULL);
+
+	l_main_exit();
+}
+
+static bool idle_watch(void *user_data)
 {
 	/*
 	 * This function gets called frequently to verify
 	 * if there is SPI data to be read. Later GPIO
 	 * sys interface can be used to avoid busy loop.
 	 */
-	return TRUE;
+	return true;
 }
-static gboolean data_watch(GIOChannel *io, GIOCondition cond,
+static bool data_watch(GIOChannel *io, GIOCondition cond,
 						gpointer user_data)
 {
 	gsize rbytes;
@@ -69,10 +103,10 @@ static gboolean data_watch(GIOChannel *io, GIOCondition cond,
 
 	printf("read(): %zu bytes\n", rbytes);
 
-	return TRUE;
+	return true;
 }
 
-static gboolean accept_watch(GIOChannel *io, GIOCondition cond,
+static bool accept_watch(GIOChannel *io, GIOCondition cond,
 						gpointer user_data)
 {
 	GIOChannel *cli_io;
@@ -93,13 +127,13 @@ static gboolean accept_watch(GIOChannel *io, GIOCondition cond,
 	if (cli_sk == -1) {
 		err = errno;
 		printf("accept(): %s(%d)\n", strerror(err), err);
-		return TRUE;
+		return true;
 	}
 
 	printf("Peer's IP address is: %s\n", inet_ntoa(client.sin_addr));
 
 	cli_io = g_io_channel_unix_new(cli_sk);
-	g_io_channel_set_close_on_unref(cli_io, TRUE);
+	g_io_channel_set_close_on_unref(cli_io, true);
 
 	/* Ending 'NULL' for binary data */
 	g_io_channel_set_encoding(cli_io, NULL, NULL);
@@ -110,7 +144,7 @@ static gboolean accept_watch(GIOChannel *io, GIOCondition cond,
 
 	g_io_channel_unref(cli_io);
 
-	return TRUE;
+	return true;
 }
 
 static int passthrough_init(void)
@@ -157,8 +191,7 @@ int main(int argc, char *argv[])
 {
 	GOptionContext *context;
 	GError *gerr = NULL;
-	GIOChannel *tcp_io;
-	GIOCondition cond = G_IO_IN | G_IO_ERR | G_IO_HUP;
+	struct l_io *tcp_io;
 	int tcp_id, watch_id, sock;
 
 	context = g_option_context_new(NULL);
@@ -176,11 +209,8 @@ int main(int argc, char *argv[])
 	printf("RPi SPI proxy (passthrough) over TCP\n");
 	printf("\tRunning at port %u\n\n", opt_port);
 
-	signal(SIGTERM, sig_term);
-	signal(SIGINT, sig_term);
-	signal(SIGPIPE, SIG_IGN);
-
-	main_loop = g_main_loop_new(NULL, FALSE);
+	if (!l_main_init)
+		goto fail_main_loop;
 
 	/* Creates TCP server socket */
 	sock = passthrough_init();
@@ -189,8 +219,8 @@ int main(int argc, char *argv[])
 		return -sock;
 	}
 
-	tcp_io = g_io_channel_unix_new(sock);
-	g_io_channel_set_close_on_unref(tcp_io, TRUE);
+	tcp_io = l_io_new(sock);
+	l_io_close_on_destroy(tcp_io, true);
 
 	/* Incoming connection handler */
 	tcp_id = g_io_add_watch(tcp_io, cond, accept_watch, NULL);
@@ -199,7 +229,7 @@ int main(int argc, char *argv[])
 
 	watch_id = g_idle_add(idle_watch, NULL);
 
-	g_main_loop_run(main_loop);
+	l_main_loop_run();
 
 	/* Closing TCP socket */
 	g_io_channel_unref(tcp_io);
